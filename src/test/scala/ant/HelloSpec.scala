@@ -1,4 +1,4 @@
-package example
+package ant
 
 import org.scalatest._
 
