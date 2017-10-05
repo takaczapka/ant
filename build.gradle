@@ -1,17 +1,22 @@
+//----------- EXTRA PROPERTIES
 ext {
     scalaVersion = '2.12'
     _gradleVersion = '4.2.1'
     targetDir = 'target'
+    targetWebapp = targetDir + '/classes/main/webapp'
+
+    webappDir = 'src/main/webapp'
+    webappPublic = webappDir + '/public'
 }
 
+//----------- GENERAL
+buildDir = targetDir
 
-// TODO turn it on once
-// assert gradle.getGradleVersion() == _gradleVersion
-
-
-apply plugin: 'scala'
 apply plugin: 'idea'
 
+
+//----------- SCALA
+apply plugin: 'scala'
 
 sourceCompatibility = '1.8'
 targetCompatibility = '1.8'
@@ -32,8 +37,38 @@ dependencies {
     testCompile "org.scalatest:scalatest_${scalaVersion}:3.0.1"
 }
 
-buildDir = targetDir
+sourceSets {
+    main {
+        output.resourcesDir = file("${targetDir}/classes/main")
+        scala.outputDir = file("${targetDir}/classes/main")
+    }
+    test {
+        output.resourcesDir = file("${targetDir}/classes/test")
+        scala.outputDir = file("${targetDir}/classes/test")
+    }
+}
 
+//----------- UI
+FileTree webappPublicFiles = fileTree(dir: project.file(webappPublic)).include('**/*')
+
+def uiFileCopies = [
+        (webappPublicFiles)       : targetWebapp,
+]
+
+task uiBuild {
+    inputs.files(webappPublicFiles)
+    doLast {
+        uiFileCopies.each { k, v ->
+            copy {
+                from k
+                into v
+            }
+        }
+    }
+}
+compileScala.dependsOn uiBuild
+
+//----------- MISC
 task wrapper(type: Wrapper) {
     gradleVersion = _gradleVersion
 }
