@@ -14,15 +14,21 @@ object HelloWorld {
       Ok(Json.obj("message" -> Json.fromString(s"Hello, $name")))
 
     case request@GET -> Root =>
-      StaticFile.fromResource("/webapp/index.html", Some(request))
-        .getOrElseF(NotFound())
+      static("index.html", request)
 
     case GET -> Root / "index.html" =>
       goToRoot
 
     case GET -> Root / "index.htm" =>
       goToRoot
+
+    case request @ GET -> Root / path if List(".js", ".css", ".html").exists(path.endsWith) =>
+      static(path, request)
   }
+
+
+  def static(file: String, request: Request): Task[Response] =
+    StaticFile.fromResource("/webapp/" + file, Some(request)).getOrElseF(NotFound())
 
   def goToRoot: Task[Response] = PermanentRedirect(Uri.unsafeFromString("/"))
 }

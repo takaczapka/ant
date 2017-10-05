@@ -20,6 +20,9 @@ source ~/dev/ant/ant_profile.sh
 $ ant
 $ ./gradlew wrapper
 $ ./gradlew idea
+$ brew install yarn
+$ yarn global add elm
+$ yarn global add elm-github-install
 
 ```
 

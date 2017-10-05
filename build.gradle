@@ -7,6 +7,7 @@ ext {
 
     webappDir = 'src/main/webapp'
     webappPublic = webappDir + '/public'
+    webappElm = webappDir + '/elm'
 }
 
 //----------- GENERAL
@@ -49,13 +50,33 @@ sourceSets {
 }
 
 //----------- UI
+
+//----------------- ELM
+
+//// TODO add elm-install task
+//// TODO add elm-nuke task
+
+FileTree elmFiles = fileTree(dir: project.file(webappElm)).include('**/*').exclude('**/elm-stuff/**')
+
+task elmMake(type: Exec) {
+    inputs.files(elmFiles)
+    group 'Build'
+    description 'Builds elm files'
+    workingDir webappElm
+    def mains = new FileNameFinder().getFileNames(workingDir.absolutePath, '**/*Main.elm', '**/elm-stuff/**')
+
+    commandLine(['elm-make'] + mains + ['--yes', '--warn', /* '--debug', */ '--output', project.file(targetWebapp + '/elm.js')])
+}
+
+
+
 FileTree webappPublicFiles = fileTree(dir: project.file(webappPublic)).include('**/*')
 
 def uiFileCopies = [
         (webappPublicFiles)       : targetWebapp,
 ]
 
-task uiBuild {
+task uiBuild(dependsOn: [elmMake]) {
     inputs.files(webappPublicFiles)
     doLast {
         uiFileCopies.each { k, v ->
