@@ -1,0 +1,39 @@
+ext {
+    scalaVersion = '2.12'
+    _gradleVersion = '4.2.1'
+    targetDir = 'target'
+}
+
+
+// TODO turn it on once
+// assert gradle.getGradleVersion() == _gradleVersion
+
+
+apply plugin: 'scala'
+apply plugin: 'idea'
+
+
+sourceCompatibility = '1.8'
+targetCompatibility = '1.8'
+
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile "org.scala-lang:scala-library:${scalaVersion}.3"
+    compile "ch.qos.logback:logback-classic:1.2.3"
+    compile "org.http4s:http4s-blaze-server_${scalaVersion}:0.17.3"
+    compile "org.http4s:http4s-circe_${scalaVersion}:0.17.3"
+    compile "org.http4s:http4s-dsl_${scalaVersion}:0.17.3"
+
+
+    testCompile "org.scalatest:scalatest_${scalaVersion}:3.0.1"
+}
+
+buildDir = targetDir
+
+task wrapper(type: Wrapper) {
+    gradleVersion = _gradleVersion
+}
