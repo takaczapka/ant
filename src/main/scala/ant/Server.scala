@@ -1,12 +1,10 @@
 package ant
 
-import fs2.{Task, Stream}
-import org.http4s.util.StreamApp
-import org.http4s.server.Server
+import fs2.{Stream, Task}
 import org.http4s.server.blaze.BlazeBuilder
-import scala.concurrent.ExecutionContext
+import org.http4s.util.StreamApp
 
-object BlazeExample extends StreamApp {
+object Server extends StreamApp {
   override def stream(args: List[String]): Stream[Task, Nothing] =
     BlazeBuilder
       .bindHttp(8080, "0.0.0.0")

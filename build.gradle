@@ -1,0 +1,74 @@
+//----------- EXTRA PROPERTIES
+ext {
+    scalaVersion = '2.12'
+    _gradleVersion = '4.2.1'
+    targetDir = 'target'
+    targetWebapp = targetDir + '/classes/main/webapp'
+
+    webappDir = 'src/main/webapp'
+    webappPublic = webappDir + '/public'
+}
+
+//----------- GENERAL
+buildDir = targetDir
+
+apply plugin: 'idea'
+
+
+//----------- SCALA
+apply plugin: 'scala'
+
+sourceCompatibility = '1.8'
+targetCompatibility = '1.8'
+
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile "org.scala-lang:scala-library:${scalaVersion}.3"
+    compile "ch.qos.logback:logback-classic:1.2.3"
+    compile "org.http4s:http4s-blaze-server_${scalaVersion}:0.17.3"
+    compile "org.http4s:http4s-circe_${scalaVersion}:0.17.3"
+    compile "org.http4s:http4s-dsl_${scalaVersion}:0.17.3"
+
+
+    testCompile "org.scalatest:scalatest_${scalaVersion}:3.0.1"
+}
+
+sourceSets {
+    main {
+        output.resourcesDir = file("${targetDir}/classes/main")
+        scala.outputDir = file("${targetDir}/classes/main")
+    }
+    test {
+        output.resourcesDir = file("${targetDir}/classes/test")
+        scala.outputDir = file("${targetDir}/classes/test")
+    }
+}
+
+//----------- UI
+FileTree webappPublicFiles = fileTree(dir: project.file(webappPublic)).include('**/*')
+
+def uiFileCopies = [
+        (webappPublicFiles)       : targetWebapp,
+]
+
+task uiBuild {
+    inputs.files(webappPublicFiles)
+    doLast {
+        uiFileCopies.each { k, v ->
+            copy {
+                from k
+                into v
+            }
+        }
+    }
+}
+compileScala.dependsOn uiBuild
+
+//----------- MISC
+task wrapper(type: Wrapper) {
+    gradleVersion = _gradleVersion
+}
