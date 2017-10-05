@@ -17,6 +17,8 @@ project/plugins/project/
 # Idea
 .idea
 .idea_modules
+*ipr
+*iws
 
 # Gradle
 .gradle
