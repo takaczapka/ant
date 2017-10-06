@@ -26,6 +26,16 @@ $ yarn global add elm-github-install
 
 ```
 
+On linux
+```
+sudo apt install nodejs npm
+sudo ln -s "$(which nodejs)" /usr/bin/node
+sudo npm install -g bower
+sudo npm install -g grunt-cli
+sudo npm install -g elm
+sudo npm install -g elm-github-install
+```
+
 ### Run a build
 
 ```bash
