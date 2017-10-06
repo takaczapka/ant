@@ -26,7 +26,7 @@ object HelloWorld {
       static(path, request)
   }
 
-
+//test
   def static(file: String, request: Request): Task[Response] =
     StaticFile.fromResource("/webapp/" + file, Some(request)).getOrElseF(NotFound())
 
