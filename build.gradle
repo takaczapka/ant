@@ -15,6 +15,13 @@ buildDir = targetDir
 
 apply plugin: 'idea'
 
+idea {
+    module {
+        inheritOutputDirs = false
+        outputDir = file(targetDir + '/classes/main')
+        testOutputDir = file(targetDir + '/classes/test')
+    }
+}
 
 //----------- SCALA
 apply plugin: 'scala'
