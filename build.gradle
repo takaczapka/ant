@@ -8,6 +8,9 @@ ext {
     webappDir = 'src/main/webapp'
     webappPublic = webappDir + '/public'
     webappElm = webappDir + '/elm'
+    webappSass = webappDir + '/sass'
+
+    elmTestDir = 'src/test/elm'
 }
 
 //----------- GENERAL
@@ -24,48 +27,56 @@ idea {
 }
 
 //----------- SCALA
-apply plugin: 'scala'
-
-sourceCompatibility = '1.8'
-targetCompatibility = '1.8'
-
-
-repositories {
-    mavenCentral()
-}
-
-dependencies {
-    compile "org.scala-lang:scala-library:${scalaVersion}.3"
-    compile "ch.qos.logback:logback-classic:1.2.3"
-    compile "org.http4s:http4s-blaze-server_${scalaVersion}:0.17.3"
-    compile "org.http4s:http4s-circe_${scalaVersion}:0.17.3"
-    compile "org.http4s:http4s-dsl_${scalaVersion}:0.17.3"
-
-
-    testCompile "org.scalatest:scalatest_${scalaVersion}:3.0.1"
-}
-
-sourceSets {
-    main {
-        output.resourcesDir = file("${targetDir}/classes/main")
-        scala.outputDir = file("${targetDir}/classes/main")
-    }
-    test {
-        output.resourcesDir = file("${targetDir}/classes/test")
-        scala.outputDir = file("${targetDir}/classes/test")
-    }
-}
-
-//----------- UI
+apply from: 'scala.gradle'
 
 //----------------- ELM
-
-//// TODO add elm-install task
-//// TODO add elm-nuke task
-
 FileTree elmFiles = fileTree(dir: project.file(webappElm)).include('**/*').exclude('**/elm-stuff/**')
 
-task elmMake(type: Exec) {
+task elmNuke(type: Delete) {
+    group 'Build'
+    description 'Removes elm_stuff folder'
+    delete webappElm + "/elm-stuff"
+}
+
+task elmTestNuke(type: Delete) {
+    group 'Build'
+    description 'Removes elm_stuff folder'
+    delete elmTestDir + '/elm-stuff'
+}
+
+task elmInstall(type: Exec) {
+    group 'Build'
+    description 'Installs elm dependencies'
+    workingDir webappElm
+    commandLine 'elm-install'
+}
+
+task elmTestInstall(type: Exec) {
+    group 'Build'
+    description 'Installs elm test dependencies'
+    workingDir elmTestDir
+    commandLine 'elm-install'
+}
+
+/* This is a hack to prevent t-elm-spec recompile all prod elm sources again. */
+task elmMainCompiledCopy(dependsOn: ['elmBuild']){
+    doLast {
+        copy {
+            from webappElm + '/elm-stuff/build-artifacts/0.18.0/ant'
+            into elmTestDir + '/elm-stuff/build-artifacts/0.18.0/ant'
+        }
+    }
+}
+
+task elmTest(dependsOn: ['elmMainCompiledCopy'], type: Exec) {
+    group 'Verification'
+    description 'Runs elm-spec tests'
+    workingDir elmTestDir
+    commandLine 't-elm-spec', '--color=true'
+}
+
+
+task elmBuild(type: Exec) {
     inputs.files(elmFiles)
     group 'Build'
     description 'Builds elm files'
@@ -75,15 +86,49 @@ task elmMake(type: Exec) {
     commandLine(['elm-make'] + mains + ['--yes', '--warn', /* '--debug', */ '--output', project.file(targetWebapp + '/elm.js')])
 }
 
+//----------------- SASS
+FileTree sassFiles = fileTree(dir: project.file(webappSass)).include('**/*.scss')
 
+task sassNuke(type: Delete) {
+    group 'Build'
+    description 'Removes .sass-cache folder'
+    delete webappSass + "/.sass-cache"
+}
+
+task sassBuild(type: Exec) {
+    inputs.files(sassFiles)
+    group 'Build'
+    description 'Builds sass files'
+    workingDir webappSass
+
+    commandLine(['sass'] + ['--update'] + [workingDir.absolutePath + ':' + project.file(targetWebapp + '/css').absolutePath])
+}
+
+
+//----------------- UI
+
+task uiNuke {
+    dependsOn elmNuke
+    dependsOn elmTestNuke
+    dependsOn sassNuke
+}
+
+task uiInstall {
+    dependsOn elmInstall
+    dependsOn elmTestInstall
+}
+
+task uiTest {
+    dependsOn elmTest
+}
 
 FileTree webappPublicFiles = fileTree(dir: project.file(webappPublic)).include('**/*')
 
 def uiFileCopies = [
-        (webappPublicFiles)       : targetWebapp,
+        (webappPublicFiles) : targetWebapp,
 ]
 
-task uiBuild(dependsOn: [elmMake]) {
+task uiBuild(dependsOn: [elmBuild, sassBuild]) {
     inputs.files(webappPublicFiles)
     doLast {
         uiFileCopies.each { k, v ->
@@ -96,7 +141,10 @@ task uiBuild(dependsOn: [elmMake]) {
 }
 compileScala.dependsOn uiBuild
 
+
 //----------- MISC
 task wrapper(type: Wrapper) {
     gradleVersion = _gradleVersion
 }
+
+test.dependsOn(uiTest)
