@@ -15,7 +15,7 @@ alias antui="ant && ./gradlew ${GRADLEW_OPTS} -t uiBuild"
 alias antjar="ant && ./gradlew ${GRADLEW_OPTS} jar"
 # run uiTests (elm only now)
 alias antui-test="ant && ./gradlew ${GRADLEW_OPTS} uiTest"
-# fully refresh ui modules (download elm dependencies, etc) and rebuild
+# fully refresh ui modules (downloads elm dependencies, etc) and rebuild
 alias antui-refresh="ant && ./gradlew ${GRADLEW_OPTS} uiNuke uiInstall uiBuild"
 # git pull + ant build + git push
 alias ffsp='ant && figlet "Git rebase FFS..." && git pull --rebase && figlet "Building FFS..." && antb && figlet "Pushing FFS..." && git push'
