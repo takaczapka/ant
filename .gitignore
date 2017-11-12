@@ -23,3 +23,6 @@ project/plugins/project/
 
 # Elm
 elm-stuff
+
+# Sass
+.sass-cache
